@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>寻宝游戏</title>
+<script>
+// 检查是否已有玩家信息，如果没有则初始化
+function initPlayerInfo() {
+  if (!localStorage.getItem('playerInfo')) {
+    const playerInfo = {
+      id: 'player1',
+      nickname: '冒险家',
+      history: []
+    };
+    localStorage.setItem('playerInfo', JSON.stringify(playerInfo));
+  }
+}
+
+// 异步加载游戏数据
+async function loadGameData() {
+  try {
+    const response = await fetch('gamedata.txt');
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.text();
+    displayGameData(data);
+  } catch (error) {
+    console.error('Failed to fetch game data:', error);
+  }
+}
+
+// 显示游戏数据
+function displayGameData(data) {
+  const gameDataElement = document.getElementById('gameData');
+  const locations = data.split('\n').map(line => line.split(': '));
+  const gameDataHTML = locations.map(location => `<p>${location[0]}:${location[1]}</p>`).join('');
+  gameDataElement.innerHTML = gameDataHTML;
+}
+
+// 播放背景音乐
+function playBackgroundMusic() {
+  const bgMusic = document.getElementById('bgMusic');
+  bgMusic.loop = true;
+  bgMusic.play().catch(() => {
+    // 如果自动播放失败，提供一个播放按钮
+    const playButton = document.createElement('button');
+    playButton.textContent = '播放背景音乐';
+    playButton.onclick = () => bgMusic.play();
+    document.body.appendChild(playButton);
+  });
+}
+
+// 保存玩家信息
+function savePlayerInfo() {
+  const playerInfo = JSON.parse(localStorage.getItem('playerInfo'));
+  // 更新玩家历史，例如添加新地点
+  playerInfo.history.push('新地点');
+  localStorage.setItem('playerInfo', JSON.stringify(playerInfo));
+}
+
+// 恢复玩家信息
+function restorePlayerInfo() {
+  const playerInfo = JSON.parse(localStorage.getItem('playerInfo'));
+  const playerInfoElement = document.getElementById('playerInfo');
+  playerInfoElement.textContent = `ID: ${playerInfo.id}, Nickname:${playerInfo.nickname}, History: ${playerInfo.history.join(', ')}`;
+}
+
+// 页面加载完毕后执行
+window.onload = function() {
+  initPlayerInfo();
+  loadGameData();
+  restorePlayerInfo();
+  playBackgroundMusic();
+};
+</script>
+</head>
+<body>
+<h1>寻宝游戏</h1>
+<div id="gameData">加载中...</div>
+<div id="playerInfo"></div>
+<button onclick="savePlayerInfo()">探索新地点</button>
+<audio id="bgMusic" src="background_music.mp3"></audio>
+</body>
+</html>
